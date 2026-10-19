@@ -1,0 +1,104 @@
+{
+  "name": "rk-lumen",
+  "productName": "RK Lumen",
+  "version": "1.0.0",
+  "description": "RK Lumen — lighting, keymap, gaming (SOCD) and automation studio for the Royal Kludge R75, with matching open-source firmware.",
+  "main": "electron/main.js",
+  "author": {
+    "name": "jamimmehdi",
+    "url": "https://github.com/jamimmehdi"
+  },
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env LUMEN_DEV=1 electron .\"",
+    "build": "tsc --noEmit && vite build",
+    "start": "vite build && electron .",
+    "dist": "vite build && electron-builder --win nsis zip"
+  },
+  "build": {
+    "appId": "com.rklumen.app",
+    "productName": "RK Lumen",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/active-win/**",
+      "node_modules/node-hid/**",
+      "node_modules/uiohook-napi/**"
+    ],
+    "npmRebuild": false,
+    "artifactName": "RK-Lumen-${version}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "shortcutName": "RK Lumen"
+    }
+  },
+  "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "active-win": "^8.2.1",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^0.500.0",
+    "node-hid": "^3.4.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "uiohook-napi": "^1.5.5",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "cross-env": "^10.1.0",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "wait-on": "^9.5.1"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/jamimmehdi/rk-lumen#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamimmehdi/rk-lumen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jamimmehdi/rk-lumen/issues"
+  },
+  "keywords": [
+    "qmk",
+    "via",
+    "rgb",
+    "keyboard",
+    "royal-kludge",
+    "r75",
+    "socd",
+    "snap-tap",
+    "electron"
+  ]
+}

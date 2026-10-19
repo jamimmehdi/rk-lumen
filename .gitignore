@@ -1,0 +1,9 @@
+node_modules/
+dist/
+release/
+firmware/out/
+*.log
+.idea/
+.vscode/
+tools/shots/
+*.bak
