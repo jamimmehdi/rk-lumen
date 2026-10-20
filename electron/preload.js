@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('lumen', {
   encoder: { get: invoke('enc:get'), set: invoke('enc:set') },
   update: { check: invoke('update:check'), download: invoke('update:download'), install: invoke('update:install') },
   reconnect: invoke('app:reconnect'),
+  showLog: invoke('app:showLog'),
   quit: invoke('app:quit'),
   openUrl: invoke('app:openUrl'),
 });

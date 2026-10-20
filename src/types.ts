@@ -66,7 +66,7 @@ declare global {
       fw: { set(a: { key: string; value: any }): Promise<Gaming>; save(): Promise<boolean> };
       encoder: { get(layer: number): Promise<{ ccw: number; cw: number }>; set(a: { layer: number; clockwise: boolean; code: number }): Promise<{ ccw: number; cw: number }> };
       update: { check(): Promise<void>; download(): Promise<void>; install(): Promise<void> };
-      reconnect(): Promise<void>; quit(): Promise<void>; openUrl(u: string): Promise<void>;
+      reconnect(): Promise<void>; showLog(): Promise<void>; quit(): Promise<void>; openUrl(u: string): Promise<void>;
     };
   }
 }

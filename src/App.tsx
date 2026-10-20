@@ -113,7 +113,7 @@ export default function App() {
             <h1>{head[page][1]}</h1>
           </div>
           <div id="hdr-actions" className="row gap8" />
-          <div className="pill"><span className={'dot' + (d.connected ? ' ok' : '')} />{d.connected ? d.info?.product ?? 'Keyboard' : 'No keyboard'}
+          <div className="pill" role={d.connected ? undefined : 'button'} tabIndex={d.connected ? undefined : 0} title={d.connected ? undefined : 'Click to look for the keyboard again'} style={d.connected ? undefined : { cursor: 'pointer' }} onClick={() => { if (!d.connected) window.lumen.reconnect(); }}><span className={'dot' + (d.connected ? ' ok' : '')} />{d.connected ? d.info?.product ?? 'Keyboard' : 'No keyboard'}
             <span className="mono" style={{ color: '#7d8491', fontSize: 11.5 }}>{d.connected ? `USB · VIA v${d.protocol}` : 'plug in via USB'}</span></div>
           {page === 'dashboard' && active && <div className="pill" style={{ gap: 10 }}><span style={{ color: 'var(--mute)' }}>Profile</span><b>{active.name}</b></div>}
         </header>

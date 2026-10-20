@@ -2,6 +2,8 @@
 // Protocol: 32-byte reports, first byte = command id, replies echo the command.
 const HID = require('node-hid');
 const { EventEmitter } = require('events');
+const { log } = require('./log');
+const withTimeout = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + ' timed out')), ms))]);
 
 const VID = 0x342d;
 const PID = 0xe484;
@@ -39,6 +41,8 @@ class ViaDevice extends EventEmitter {
     this.queue = [];
     this.pumping = false;
     this.opening = false;
+    this.timeouts = 0;
+    this.lastMissing = -2;
   }
 
   static list() {
@@ -56,8 +60,8 @@ class ViaDevice extends EventEmitter {
       if (!this.connected) return this.tryOpen();
       try {
         const list = await HID.devicesAsync();
-        if (!list.some((d) => d.vendorId === VID && d.usagePage === USAGE_PAGE)) this.close(true);
-      } catch { /* retry next poll */ }
+        if (!list.some((d) => d.vendorId === VID && d.usagePage === USAGE_PAGE)) { log('hid', 'device no longer enumerated -> closing'); this.close(true); }
+      } catch (e) { log('hid', 'enumeration failed: ' + e.message); }
     }, 2000);
   }
 
@@ -70,18 +74,26 @@ class ViaDevice extends EventEmitter {
     if (this.opening || this.connected) return;
     this.opening = true;
     try {
-      const d = (await HID.devicesAsync()).find((x) => x.vendorId === VID && x.usagePage === USAGE_PAGE && x.usage === USAGE);
-      if (!d) return;
-      const dev = await HID.HIDAsync.open(d.path);
+      const all = (await withTimeout(HID.devicesAsync(), 4000, 'enumeration')).filter((x) => x.vendorId === VID);
+      const d = all.find((x) => x.usagePage === USAGE_PAGE && x.usage === USAGE);
+      if (!d) {
+        if (this.lastMissing !== all.length) log('hid', `raw HID interface not found (${all.length} interface(s) for 342D)`);
+        this.lastMissing = all.length;
+        return;
+      }
+      this.lastMissing = -1;
+      const dev = await withTimeout(HID.HIDAsync.open(d.path), 5000, 'open');
       dev.on('data', (buf) => this.onData(Buffer.from(buf)));
-      dev.on('error', () => this.close(true));
+      dev.on('error', (e) => { log('hid', 'device error: ' + (e && e.message)); this.close(true); });
       this.dev = dev;
       this.queue = [];
+      this.timeouts = 0;
       this.info = { product: d.product, manufacturer: d.manufacturer, pid: d.productId, release: d.release, path: d.path };
       this.connected = true;
+      log('hid', 'opened ' + (d.product || 'device'));
       this.emit('connect', this.info);
     } catch (e) {
-      console.error('hid open failed:', e && e.message);
+      log('hid', 'open failed: ' + (e && e.message));
       this.dev = null;
     } finally { this.opening = false; }
   }
@@ -92,6 +104,7 @@ class ViaDevice extends EventEmitter {
     const dev = this.dev;
     this.dev = null;
     this.queue = [];
+    log('hid', 'closed' + (emit ? ' (was connected)' : ''));
     if (dev) dev.close().catch(() => {});
     this.pending.forEach((p) => { clearTimeout(p.timer); p.reject(new Error('disconnected')); });
     this.pending = [];
@@ -104,6 +117,7 @@ class ViaDevice extends EventEmitter {
     if (i >= 0) {
       const [p] = this.pending.splice(i, 1);
       clearTimeout(p.timer);
+      this.timeouts = 0;
       p.resolve(buf);
     }
   }
@@ -133,6 +147,7 @@ class ViaDevice extends EventEmitter {
         await Promise.race([dev.write(b), new Promise((_, rej) => setTimeout(() => rej(new Error('write timeout')), 1500))]);
       }
     } catch {
+      log('hid', 'write failed or timed out -> closing');
       if (this.dev === dev) this.close(true);
     }
     this.pumping = false;
@@ -145,6 +160,8 @@ class ViaDevice extends EventEmitter {
       const entry = { cmd: bytes[0], resolve, reject };
       entry.timer = setTimeout(() => {
         this.pending = this.pending.filter((p) => p !== entry);
+        // Several unanswered requests in a row means the handle is stale: drop it so the poll reopens a fresh one.
+        if (++this.timeouts >= 4) { log('hid', 'no replies to 4 requests in a row -> reopening'); this.close(true); }
         reject(new Error('timeout'));
       }, timeout);
       this.pending.push(entry);

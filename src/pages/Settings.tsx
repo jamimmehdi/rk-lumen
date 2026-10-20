@@ -61,6 +61,12 @@ export default function Settings() {
       <Card title="Privacy">
         <Toggle on={s.trackKeys} onChange={(v) => set({ trackKeys: v })} label="Keystroke statistics" hint="Stores per-key counts locally for the heat-map. Never records what you type." />
       </Card>
+      <Card title="Diagnostics">
+        <div className="row">
+          <div className="grow"><div className="lbl">Connection log</div><small className="hint">Records when the keyboard connects or disconnects and any errors. It never contains keystrokes. Attach it when reporting a problem.</small></div>
+          <Btn onClick={() => window.lumen.showLog()}>Show log file</Btn>
+        </div>
+      </Card>
       <Card title="About this keyboard">
         <p className="hint">Your R75 runs QMK with the VIA protocol over USB raw HID (usage 0xFF60). Lighting uses the firmware's RGB Matrix controls; the firmware does not expose per-key colour streaming, so per-key painting isn't available — live modes drive the whole board.</p>
       </Card>

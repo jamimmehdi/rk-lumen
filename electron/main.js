@@ -8,6 +8,7 @@ const { ViaDevice } = require('./via');
 const { Store, uid } = require('./store');
 const { LiveEngine, MODES } = require('./live');
 const updater = require('./updater');
+const logger = require('./log');
 
 const DEV = !!process.env.LUMEN_DEV;
 const ROWS = 6, COLS = 15;
@@ -489,7 +490,8 @@ function setupIpc() {
     await via.setEncoder(layer, 0, clockwise, code);
     return { ccw: await via.getEncoder(layer, 0, false), cw: await via.getEncoder(layer, 0, true) };
   });
-  ipcMain.handle('app:reconnect', () => { via.close(false); via.tryOpen(); });
+  ipcMain.handle('app:reconnect', () => { logger.log('app', 'manual reconnect'); via.close(false); via.tryOpen(); });
+  ipcMain.handle('app:showLog', () => { const f = logger.path(); if (f) shell.showItemInFolder(f); });
   ipcMain.handle('app:quit', () => { app.isQuitting = true; app.quit(); });
   ipcMain.handle('app:openUrl', (_e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
@@ -508,6 +510,8 @@ app.setAppUserModelId('com.rklumen.app');  // taskbar grouping + icon
 app.on('second-instance', showWindow);
 
 app.whenReady().then(async () => {
+  logger.init(app.getPath('userData'));
+  logger.log('app', `RK Lumen ${app.getVersion()} starting (Electron ${process.versions.electron})`);
   store = new Store();
   live = new LiveEngine();
   via = new ViaDevice();
