@@ -337,8 +337,14 @@ function refreshTray() {
   tray.setToolTip(`RK Lumen — ${devState.connected ? 'R75 connected' : 'keyboard not found'}`);
 }
 function createTray() {
-  let img = appIcon();
-  if (!img.isEmpty()) img = img.resize({ width: 16, height: 16 });
+  // Multi-resolution tray icon so it stays sharp at 100%–200% display scaling.
+  const big = appIcon();
+  let img = big;
+  if (!big.isEmpty()) {
+    img = nativeImage.createEmpty();
+    [[1, 16], [1.25, 20], [1.5, 24], [2, 32], [3, 48]].forEach(([scaleFactor, px]) => img.addRepresentation({ scaleFactor, buffer: big.resize({ width: px, height: px, quality: 'best' }).toPNG() }));
+  }
+  logger.log('app', 'tray icon ' + (img.isEmpty() ? 'MISSING (empty image)' : 'loaded ' + JSON.stringify(img.getSize())));
   tray = new Tray(img);
   tray.on('click', showWindow);
   refreshTray();
