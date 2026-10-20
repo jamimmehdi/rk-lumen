@@ -479,6 +479,7 @@ function desiredHardwareFull() {
 }
 
 // ---------------------------------------------------------------- boot
+app.setAppUserModelId('com.rklumen.app');  // taskbar grouping + icon
 app.on('second-instance', showWindow);
 
 app.whenReady().then(async () => {
