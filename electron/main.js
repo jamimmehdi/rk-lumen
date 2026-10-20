@@ -7,6 +7,7 @@ const os = require('os');
 const { ViaDevice } = require('./via');
 const { Store, uid } = require('./store');
 const { LiveEngine, MODES } = require('./live');
+const updater = require('./updater');
 
 const DEV = !!process.env.LUMEN_DEV;
 const ROWS = 6, COLS = 15;
@@ -90,6 +91,7 @@ function snapshot() {
     version: app.getVersion(),
     trackingAvailable: !!uiohook,
     gaming,
+    update: updater.state(),
   };
 }
 function pushState() {
@@ -512,6 +514,7 @@ app.whenReady().then(async () => {
   via.on('raw', (m) => { if (rawListen && win && !win.isDestroyed()) win.webContents.send('raw', m); });
 
   setupIpc();
+  updater.init({ onChange: pushState, getSettings: sets, onBeforeInstall: () => { app.isQuitting = true; } });
   createWindow();
   createTray();
   registerHotkeys();

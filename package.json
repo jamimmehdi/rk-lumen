@@ -1,7 +1,7 @@
 {
   "name": "rk-lumen",
   "productName": "RK Lumen",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "RK Lumen — lighting, keymap, gaming (SOCD) and automation studio for the Royal Kludge R75, with matching open-source firmware.",
   "main": "electron/main.js",
   "author": {
@@ -55,12 +55,21 @@
       "allowToChangeInstallationDirectory": true,
       "perMachine": false,
       "shortcutName": "RK Lumen"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "jamimmehdi",
+        "repo": "rk-lumen",
+        "releaseType": "release"
+      }
+    ]
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/manrope": "^5.3.0",
     "active-win": "^8.2.1",
+    "electron-updater": "^6.8.9",
     "framer-motion": "^12.43.0",
     "lucide-react": "^0.500.0",
     "node-hid": "^3.4.0",

@@ -16,7 +16,7 @@ const defaults = () => {
       maxBrightness: 100, offOnLock: true, restoreOnExit: true,
       idleDimMin: 0, idleDimLevel: 20, idleOffMin: 0,
       nightEnabled: false, nightFrom: '22:00', nightTo: '07:00', nightLevel: 40,
-      disabledEffects: [],
+      disabledEffects: [], autoUpdateCheck: true,
     },
     profiles: [p1, p2, p3],
     activeProfileId: p1.id,

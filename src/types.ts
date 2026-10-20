@@ -18,7 +18,7 @@ export interface Settings {
   maxBrightness: number; offOnLock: boolean; restoreOnExit: boolean;
   idleDimMin: number; idleDimLevel: number; idleOffMin: number;
   nightEnabled: boolean; nightFrom: string; nightTo: string; nightLevel: number;
-  disabledEffects: number[];
+  disabledEffects: number[]; autoUpdateCheck: boolean;
 }
 export interface Snap {
   device: { connected: boolean; info: { product: string; manufacturer: string; pid: number; release: number } | null; protocol: number; layers: number };
@@ -30,12 +30,17 @@ export interface Snap {
   sys: { cpu: number; ram: number };
   typing: { wpm: number; energy: number };
   stats: { total: number; today: number; keys: Record<string, number>; daily: Record<string, number> };
-  version: string; trackingAvailable: boolean; gaming: Gaming | null;
+  version: string; trackingAvailable: boolean; gaming: Gaming | null; update: UpdateState;
 }
 export interface Frame {
   out: { h: number; s: number; v: number; effect: number }; wpm: number;
   sys: { cpu: number; ram: number };
   audio: { bass: number; mid: number; high: number; level: number; centroid: number; beat: number };
+}
+export interface UpdateState {
+  mode: 'installed' | 'portable' | 'dev'; supported: boolean;
+  status: 'idle' | 'checking' | 'none' | 'available' | 'downloading' | 'ready' | 'error';
+  current: string; version: string; notes: string; percent: number; checkedAt: number; error: string; releasesUrl: string;
 }
 export interface Keymap { rows: number; cols: number; layers: number[][][] }
 
@@ -60,6 +65,7 @@ declare global {
       raw: { listen(on: boolean): Promise<void>; devices(): Promise<any[]>; send(hex: string): Promise<string> };
       fw: { set(a: { key: string; value: any }): Promise<Gaming>; save(): Promise<boolean> };
       encoder: { get(layer: number): Promise<{ ccw: number; cw: number }>; set(a: { layer: number; clockwise: boolean; code: number }): Promise<{ ccw: number; cw: number }> };
+      update: { check(): Promise<void>; download(): Promise<void>; install(): Promise<void> };
       reconnect(): Promise<void>; quit(): Promise<void>; openUrl(u: string): Promise<void>;
     };
   }

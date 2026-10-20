@@ -1,4 +1,4 @@
-import { Card, Toggle, Slider } from '../components/ui';
+import { Card, Toggle, Slider, Btn } from '../components/ui';
 import { useUI, ACCENTS } from '../store';
 
 export default function Settings() {
@@ -7,8 +7,38 @@ export default function Settings() {
   const set = (p: any) => window.lumen.settings(p);
   const accent = useUI((x) => x.accent);
   const setAccent = useUI((x) => x.setAccent);
+  const u = snap.update;
+  const busy = u.status === 'checking' || u.status === 'downloading';
+  const statusText =
+    u.status === 'checking' ? 'Checking for updates…'
+    : u.status === 'available' ? `Version ${u.version} is available`
+    : u.status === 'downloading' ? `Downloading version ${u.version}… ${u.percent}%`
+    : u.status === 'ready' ? `Version ${u.version} is ready to install`
+    : u.status === 'none' ? "You're up to date"
+    : u.status === 'error' ? 'Could not check for updates'
+    : u.supported ? 'Not checked yet' : 'Updates are manual for this build';
   return (
     <div className="page narrow">
+      <Card title="Updates" sub={`RK Lumen v${u.current}`}>
+        <div className="stack">
+          <div className="row">
+            <div className="grow">
+              <div className="lbl">{statusText}</div>
+              {u.status === 'error' && <small className="hint">{u.error}</small>}
+              {u.status === 'none' && u.checkedAt > 0 && <small className="hint">Last checked {new Date(u.checkedAt).toLocaleTimeString()}</small>}
+              {!u.supported && <small className="hint">{u.mode === 'portable' ? 'This is the portable build. Download the new version from GitHub and replace the folder.' : 'Updates install only in the installed app.'}</small>}
+            </div>
+            {u.supported && u.status === 'available' && <Btn kind="primary" onClick={() => window.lumen.update.download()}>Download</Btn>}
+            {u.supported && u.status === 'ready' && <Btn kind="primary" onClick={() => window.lumen.update.install()}>Restart & install</Btn>}
+            {u.supported && !['available', 'ready'].includes(u.status) && <Btn disabled={busy} onClick={() => window.lumen.update.check()}>Check for updates</Btn>}
+            {!u.supported && <Btn onClick={() => window.lumen.openUrl(u.releasesUrl)}>Open releases</Btn>}
+          </div>
+          {u.status === 'downloading' && <div className="meter"><i style={{ width: u.percent + '%' }} /></div>}
+          {u.notes && ['available', 'downloading', 'ready'].includes(u.status) && <pre className="notes">{u.notes}</pre>}
+          {u.supported && <Toggle on={s.autoUpdateCheck} onChange={(v) => set({ autoUpdateCheck: v })} label="Check for updates automatically" hint="Contacts github.com/jamimmehdi/rk-lumen about every 6 hours. Nothing is downloaded until you click Download." />}
+          <p className="hint">Keyboard firmware is never updated automatically. New firmware is published separately and is flashed manually with the safe flash script.</p>
+        </div>
+      </Card>
       <Card title="Appearance">
         <div className="row"><span className="lbl grow">Accent colour</span>
           <div className="swatches">

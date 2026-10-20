@@ -36,9 +36,10 @@ function greeting() {
   return h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 }
 
-const Nav = ({ id, page, set }: { id: Page; page: Page; set: (p: Page) => void }) => (
+const Nav = ({ id, page, set, badge }: { id: Page; page: Page; set: (p: Page) => void; badge?: boolean }) => (
   <button className={'ni' + (page === id ? ' on' : '')} onClick={() => set(id)} aria-label={LABEL[id]} title={LABEL[id]} aria-current={page === id ? 'page' : undefined}>
     <svg className="ic" viewBox="0 0 24 24" aria-hidden="true">{ICONS[id].map((d, i) => <path key={i} d={d} />)}</svg>
+    {badge && <i className="badge" aria-label="Update available" />}
   </button>
 );
 
@@ -50,6 +51,16 @@ export default function App() {
   const lastAccent = useRef('');
 
   useEffect(() => { initBridge(); }, []);
+
+  // One toast per newly found version, pointing at Settings.
+  const upd = snap?.update;
+  const announced = useRef('');
+  useEffect(() => {
+    if (upd?.status === 'available' && upd.version && announced.current !== upd.version) {
+      announced.current = upd.version;
+      useUI.getState().notify(`RK Lumen ${upd.version} is available — open Settings to update.`);
+    }
+  }, [upd?.status, upd?.version]);
 
   // Accent: a fixed brand colour (default Ember) or "follow" = the keyboard's live colour.
   useEffect(() => {
@@ -92,7 +103,7 @@ export default function App() {
         </div>
         {MAIN.map((id) => <Nav key={id} id={id} page={page} set={setPage} />)}
         <div style={{ flex: 1 }} />
-        <Nav id="settings" page={page} set={setPage} />
+        <Nav id="settings" page={page} set={setPage} badge={['available', 'downloading', 'ready'].includes(snap.update.status)} />
       </nav>
 
       <div className="main">

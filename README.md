@@ -14,6 +14,7 @@ A modern Windows app for the **Royal Kludge R75** (wired, ANSI) — lighting, ke
 - **Keymap editor:** all layers, keycode picker, modifier combos, knob press / turn left / turn right, backup and restore, reset to defaults.
 - **Scenes and automation:** save lighting scenes, switch per application, idle dim / off, night schedule, lights off when the PC locks, global hotkeys, tray + start with Windows.
 - **Insights (opt-in):** typing speed and a per-key heat-map. Only counts are stored, never what you type.
+- **Updates inside the app:** the installed version checks GitHub releases, shows the release notes and updates itself when you click *Download* → *Restart & install*. Keyboard firmware is never updated automatically.
 - **Protocol lab:** raw HID console for the VIA interface (dangerous commands are blocked).
 
 **The firmware** (optional, adds the *Gaming* page)
@@ -31,6 +32,7 @@ A modern Windows app for the **Royal Kludge R75** (wired, ANSI) — lighting, ke
 
 1. Download **`RK-Lumen-1.0.0-x64.exe`** from the [latest release](https://github.com/jamimmehdi/rk-lumen/releases/latest) and run it (or use the portable `.zip`).
    Windows SmartScreen may warn because the installer is not code-signed: choose *More info → Run anyway* if you trust this repository.
+   The installed app updates itself from then on (Settings → Updates). The portable zip does not — replace its folder with the new version.
 2. Plug in the keyboard over USB and open **RK Lumen**. Lighting, keymap, scenes and automation work immediately.
 3. *(Optional)* Flash the custom firmware to unlock SOCD / N-key rollover / Windows-key lock — see **[firmware/README.md](firmware/README.md)** and read the warnings first.
 
@@ -38,7 +40,7 @@ A modern Windows app for the **Royal Kludge R75** (wired, ANSI) — lighting, ke
 
 - **Flashing firmware can brick a keyboard.** It worked on the author's board; yours may differ. Read [firmware/README.md](firmware/README.md), take the backup the script offers, and only flash a wired R75 ANSI (`342D:E484`).
 - **Competitive games:** Counter-Strike 2 bans Snap Tap-style input; Valorant, Faceit and others may flag or change rules. SOCD is **off by default**. You are responsible for following the rules of the games you play.
-- **Privacy:** no network access, no telemetry, no accounts. Settings live in `%APPDATA%\RK Lumen`. The optional key counter uses a local keyboard hook and is off until you enable it.
+- **Privacy:** no telemetry and no accounts. The only network access is the optional update check against this repository's GitHub releases (Settings → Updates; it can be switched off). Settings live in `%APPDATA%\RK Lumen`. The optional key counter uses a local keyboard hook and is off until you enable it.
 
 ## Build from source
 

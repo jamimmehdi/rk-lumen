@@ -243,3 +243,7 @@ input[type=color] { -webkit-appearance: none; appearance: none; } input[type=col
 .lyr b { font-size: 18px; font-weight: 800; color: var(--dim); } .lyr span { font-size: 11px; }
 .lyr.held { border-color: rgba(var(--accent-rgb), .5); } .lyr.on { border-color: var(--accent); background: rgba(var(--accent-rgb), .14); color: #fff; box-shadow: 0 0 20px -6px var(--accent); } .lyr.on b { color: var(--accent); }
 .chip:disabled { opacity: .4; }
+
+/* ------------------------------------------------------------ updates */
+.badge { position: absolute; top: 9px; right: 9px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); border: 2px solid #0b0c0f; box-sizing: content-box; }
+.notes { margin: 0; padding: 12px 14px; max-height: 150px; overflow: auto; border-radius: 12px; background: rgba(0,0,0,.3); border: 1px solid var(--line); color: var(--dim); font: 12px/1.5 'Manrope', sans-serif; white-space: pre-wrap; user-select: text; }
