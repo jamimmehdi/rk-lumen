@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ShieldAlert, Cpu, Save } from 'lucide-react';
 import { useUI } from '../store';
-import { Toggle } from '../components/ui';
+import { Toggle, Btn } from '../components/ui';
 
 const KEYS: Record<number, string> = { 0x52: '↑', 0x51: '↓', 0x50: '←', 0x4f: '→' };
 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((c, i) => (KEYS[0x04 + i] = c));
@@ -68,7 +68,7 @@ export default function Gaming() {
     <div className="cols">
       <div className="col">
         {locked && (
-          <div className="note bad"><ShieldAlert size={15} /><span>This keyboard is running its stock firmware, so these controls are locked. Flash the RK Lumen firmware to unlock SOCD, N-key rollover and Windows-key lock from this app.</span></div>
+          <div className="note bad"><ShieldAlert size={15} /><span>This keyboard is running its stock firmware, so these controls are locked. Flash the RK Lumen firmware to unlock SOCD, N-key rollover and Windows-key lock from this app. Already flashed? Try detecting again.</span><Btn small onClick={() => window.lumen.reconnect()}>Detect again</Btn></div>
         )}
 
         <section className={'panel soc' + (locked ? ' locked' : '')}>

@@ -29,14 +29,39 @@ let activeApp = '';
 let devState = { connected: false, info: null, protocol: 0, layers: 0 };
 // RK Lumen custom-firmware link (VIA custom channel 0). null = stock firmware without the link.
 let gaming = null;
+let linkStock = false;  // true once the keyboard has answered "unhandled" (stock firmware): stop probing
 const LV = { INFO: 1, ON: 2, MODE_V: 3, MODE_H: 4, NKRO: 5, GUI: 6, LAYER: 7, KEYS_V: 8, KEYS_H: 9 };
+
+// Reads protocol, layers and the RK Lumen link. The keyboard can be slow right after plug-in or login,
+// so this retries instead of giving up (a single failed attempt used to leave the Gaming page locked).
+async function initDevice(tries = 1) {
+  for (let t = 0; t < tries && via.connected; t++) {
+    try {
+      const i = await via.readInfo();
+      devState.protocol = i.protocol; devState.layers = i.layers;
+      await readGaming();
+      if (!store.data.synced) {
+        const l = await via.readLighting();
+        cur().hw = { effect: l.effect, h: l.h, s: l.s, v: l.v, speed: l.speed };
+        store.data.profiles[0].hw = { ...cur().hw };
+        store.data.synced = true;
+      }
+      return true;
+    } catch (e) {
+      await new Promise((r) => setTimeout(r, 700));
+    }
+  }
+  return false;
+}
 
 async function readGaming() {
   if (!via.connected) { gaming = null; return; }
   const info = await via.linkGet(LV.INFO);
-  if (!info) { gaming = null; return; }
+  if (info === undefined) throw new Error('keyboard did not answer');   // transient: the caller retries
+  if (info === null) { gaming = null; linkStock = true; return; }
+  linkStock = false;
   const g = { version: info[0], caps: info[1] };
-  const get = async (id) => (await via.linkGet(id)) || Buffer.alloc(3);
+  const get = async (id) => { const r = await via.linkGet(id); if (r === undefined) throw new Error('keyboard did not answer'); return r || Buffer.alloc(3); };
   g.socdOn = (await get(LV.ON))[0] === 1;
   g.modeV = (await get(LV.MODE_V))[0];
   g.modeH = (await get(LV.MODE_H))[0];
@@ -497,21 +522,12 @@ app.whenReady().then(async () => {
 
   via.on('connect', async (info) => {
     devState = { connected: true, info, protocol: 0, layers: 0 };
-    try {
-      const i = await via.readInfo();
-      devState.protocol = i.protocol; devState.layers = i.layers;
-      await readGaming();
-      if (!store.data.synced) {
-        const l = await via.readLighting();
-        cur().hw = { effect: l.effect, h: l.h, s: l.s, v: l.v, speed: l.speed };
-        store.data.profiles[0].hw = { ...cur().hw };
-        store.data.synced = true;
-      }
-    } catch (e) { console.error('init failed', e.message); }
+    linkStock = false;
+    await initDevice(6);
     lastSent = null;
     pushState();
   });
-  via.on('disconnect', () => { devState = { connected: false, info: null, protocol: 0, layers: 0 }; gaming = null; lastSent = null; keymapCache = null; pushState(); });
+  via.on('disconnect', () => { devState = { connected: false, info: null, protocol: 0, layers: 0 }; gaming = null; linkStock = false; lastSent = null; keymapCache = null; pushState(); });
   via.on('raw', (m) => { if (rawListen && win && !win.isDestroyed()) win.webContents.send('raw', m); });
 
   setupIpc();
@@ -528,7 +544,10 @@ app.whenReady().then(async () => {
   setInterval(() => { sampleSystem(); idleSecs = powerMonitor.getSystemIdleTime(); }, 1000);
   setInterval(checkActiveApp, 2000);
   setInterval(() => { if (statsDirty) { statsDirty = false; pushState(); } }, 10000);
-  setInterval(async () => { if (win && win.isVisible()) { if (gaming) await readGaming().catch(() => {}); pushState(); } }, 2000);
+  setInterval(async () => {
+    if (via.connected && (devState.protocol === 0 || (!gaming && !linkStock))) { await initDevice(1); pushState(); return; }   // late or failed detection
+    if (win && win.isVisible()) { if (gaming) await readGaming().catch(() => {}); pushState(); }
+  }, 2000);
   powerMonitor.on('lock-screen', () => { locked = true; });
   powerMonitor.on('unlock-screen', () => { locked = false; });
   powerMonitor.on('suspend', () => { locked = true; });

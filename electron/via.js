@@ -197,11 +197,12 @@ class ViaDevice extends EventEmitter {
   }
 
   // ---- RK Lumen custom firmware link (VIA custom channel 0). Returns null on stock firmware.
-  async linkGet(id, timeout = 600) {
+  // null = the firmware answered "unhandled" (stock firmware); undefined = no answer (timeout / not connected).
+  async linkGet(id, timeout = 1200) {
     try {
       const r = await this.request([CMD.CUSTOM_GET, 0, id], timeout);
       return r[0] === 0xff ? null : r.subarray(3);
-    } catch { return null; }
+    } catch { return undefined; }
   }
   linkSet(id, ...bytes) { return this.write([CMD.CUSTOM_SET, 0, id, ...bytes], true); }
   linkSave() { return this.write([CMD.CUSTOM_SAVE, 0], true); }
